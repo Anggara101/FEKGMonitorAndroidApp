@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -23,11 +24,11 @@ fun HomeTopBar(
     navController: NavController,
     homeViewModel: HomeViewModel
 ) {
-    var expanded by remember{mutableStateOf(false)}
+    var expanded by rememberSaveable{mutableStateOf(false)}
     val radioOptions = homeViewModel.listOfPairedDevice.value
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+
     TopAppBar(
-        title = { Text("Simple TopAppBar") },
+        title = { Text("FEKG Monitor") },
         actions = {
             // RowScope here, so these icons will be placed horizontally
             IconButton(onClick = { navController.navigate(Screen.History.name) }) {
@@ -36,31 +37,38 @@ fun HomeTopBar(
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Filled.Devices, contentDescription = "Show List of Devices")
             }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded=false },
-                modifier = Modifier.selectableGroup()
+            if(radioOptions.isNotEmpty()) {
+                val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.selectableGroup()
                 ) {
-                radioOptions.forEach{ text ->
-                    Row (
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .selectable(
+                    radioOptions.forEach { text ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .selectable(
+                                    selected = (text == selectedOption),
+                                    onClick = {
+                                        onOptionSelected(text); homeViewModel.onSelectedDevice(
+                                        text
+                                    )
+                                    },
+                                    role = Role.RadioButton
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
                                 selected = (text == selectedOption),
-                                onClick = { onOptionSelected(text) ; homeViewModel.onSelectedDevice(text)},
-                                role = Role.RadioButton
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        RadioButton(
-                            selected = (text == selectedOption),
-                            onClick = {
-                                onOptionSelected(text);
-                                homeViewModel.onSelectedDevice(text)
-                            }
-                        )
-                        Text(text = text)
+                                onClick = {
+                                    onOptionSelected(text)
+                                    homeViewModel.onSelectedDevice(text)
+                                }
+                            )
+                            Text(text = text)
+                        }
                     }
                 }
             }

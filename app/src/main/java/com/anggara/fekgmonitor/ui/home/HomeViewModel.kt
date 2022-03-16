@@ -22,13 +22,23 @@ class HomeViewModel : ViewModel() {
     val selectedDevice: MutableState<String> =_selectedDevice
 
     private val myBluetoothService = MyBluetoothService()
-    private val _listOfPairedDevices = mutableStateOf(myBluetoothService.getListOfPairedDevices())
+    private val _listOfPairedDevices = mutableStateOf(listOf("raspberrypi, ESP32test"))
     val listOfPairedDevice: State<List<String>> = _listOfPairedDevices
+
+    init {
+        try {
+            _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
+        } catch (e: Exception) {
+            Log.e("View Model", "Error getting device", e)
+        }
+
+    }
 
     fun onBluetoothStateChanged(newStateBluetooth: Boolean){
         _stateBluetooth.value = newStateBluetooth
         if (_stateBluetooth.value == true){
             _homeSubtitle.value = "Bluetooth is enabled, press start to connect to device"
+            _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
         }else{
             _homeSubtitle.value = "Bluetooth is disabled, please enable bluetooth"
         }
