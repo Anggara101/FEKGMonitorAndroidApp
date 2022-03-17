@@ -1,6 +1,5 @@
 package com.anggara.fekgmonitor.ui.home
 
-import android.bluetooth.BluetoothDevice
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -11,11 +10,14 @@ import androidx.lifecycle.ViewModel
 import com.anggara.fekgmonitor.logic.MyBluetoothService
 
 class HomeViewModel : ViewModel() {
+    private val tag = "View Model"
 
     private val _stateBluetooth = MutableLiveData(false)
     val stateBluetooth: LiveData<Boolean> = _stateBluetooth
 
-    private val _homeSubtitle = mutableStateOf("Press start button to start")
+    private val _homeTitle = mutableStateOf("Bluetooth Off")
+    val homeTitle: MutableState<String> = _homeTitle
+    private val _homeSubtitle = mutableStateOf("Bluetooth required, please enable Bluetooth")
     val homeSubtitle: MutableState<String> = _homeSubtitle
 
     private val _selectedDevice = mutableStateOf("rapsberrypi")
@@ -25,24 +27,39 @@ class HomeViewModel : ViewModel() {
     private val _listOfPairedDevices = mutableStateOf(listOf("raspberrypi, ESP32test"))
     val listOfPairedDevice: State<List<String>> = _listOfPairedDevices
 
-    init {
-        try {
-            _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
-        } catch (e: Exception) {
-            Log.e("View Model", "Error getting device", e)
-        }
+    private var numListDeviceCalled = 0
 
+    init {
+        _stateBluetooth.value = myBluetoothService.bluetoothAdapter.isEnabled
+        if(_stateBluetooth.value==true){
+            _homeTitle.value = "Bluetooth Enabled"
+//            _homeSubtitle.value = "Press start to connect to device"
+            _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
+            _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
+            numListDeviceCalled++
+        }
     }
 
     fun onBluetoothStateChanged(newStateBluetooth: Boolean){
         _stateBluetooth.value = newStateBluetooth
         if (_stateBluetooth.value == true){
-            _homeSubtitle.value = "Bluetooth is enabled, press start to connect to device"
-            _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
+            if (numListDeviceCalled<1) {
+                _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
+                numListDeviceCalled++
+            }
+            _homeTitle.value = "Bluetooth on"
+//            _homeSubtitle.value = "Press start to connect to device"
+            _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
         }else{
-            _homeSubtitle.value = "Bluetooth is disabled, please enable bluetooth"
+            _homeTitle.value = "Bluetooth off"
+            _homeSubtitle.value = "Bluetooth required, please enable Bluetooth"
         }
-//        Log.i("View Model", "bluetoothStateChanged: $stateBluetooth")
+        Log.i(tag, "bluetoothStateChanged: ${_listOfPairedDevices}, $numListDeviceCalled")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        numListDeviceCalled=0
     }
 
     fun onStartButtonClick(){
@@ -50,8 +67,12 @@ class HomeViewModel : ViewModel() {
 //        Log.i("View Model", "buttonClicked: $stateBluetooth")
     }
 
+    fun onDeviceClick(){
+
+    }
+
     fun onSelectedDevice(deviceName: String){
         _selectedDevice.value = deviceName
-        Log.i("View Model", "Device Selected: $selectedDevice")
+        _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
     }
 }

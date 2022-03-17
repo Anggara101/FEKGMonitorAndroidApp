@@ -20,6 +20,7 @@ import com.anggara.fekgmonitor.ui.component.TitleCard
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
 //    val bluetoothState by homeViewModel.stateBluetooth.observeAsState()
+    val title = homeViewModel.homeTitle.value
     val subtitle = homeViewModel.homeSubtitle.value
 
     Scaffold(topBar = { HomeTopBar(navController, homeViewModel) }) { innerPadding ->
@@ -27,7 +28,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             modifier = Modifier.padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TitleCard(subtitle = subtitle)
+            TitleCard(title = title, subtitle = subtitle)
             GraphCard()
             Button(
                 onClick = { homeViewModel.onStartButtonClick() },

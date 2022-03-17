@@ -7,6 +7,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -14,7 +15,8 @@ fun GraphCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp), elevation = 4.dp,
+            .padding(8.dp),
+        elevation = 2.dp,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -46,4 +48,10 @@ fun GraphCard() {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun GraphCardPreview() {
+    GraphCard()
 }
