@@ -12,14 +12,17 @@ import com.anggara.fekgmonitor.logic.MyBluetoothService
 class HomeViewModel : ViewModel() {
     private val tag = "View Model"
 
+    // Live State
     private val _stateBluetooth = MutableLiveData(false)
     val stateBluetooth: LiveData<Boolean> = _stateBluetooth
 
+    // UI VM
     private val _homeTitle = mutableStateOf("Bluetooth Off")
     val homeTitle: MutableState<String> = _homeTitle
     private val _homeSubtitle = mutableStateOf("Bluetooth required, please enable Bluetooth")
     val homeSubtitle: MutableState<String> = _homeSubtitle
 
+    // Bluetooth VM
     private val _selectedDevice = mutableStateOf("rapsberrypi")
     val selectedDevice: MutableState<String> =_selectedDevice
 
@@ -32,7 +35,7 @@ class HomeViewModel : ViewModel() {
     init {
         _stateBluetooth.value = myBluetoothService.bluetoothAdapter.isEnabled
         if(_stateBluetooth.value==true){
-            _homeTitle.value = "Bluetooth Enabled"
+            _homeTitle.value = "Bluetooth On"
 //            _homeSubtitle.value = "Press start to connect to device"
             _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
             _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
@@ -47,11 +50,11 @@ class HomeViewModel : ViewModel() {
                 _listOfPairedDevices.value = myBluetoothService.getListOfPairedDevices()
                 numListDeviceCalled++
             }
-            _homeTitle.value = "Bluetooth on"
+            _homeTitle.value = "Bluetooth On"
 //            _homeSubtitle.value = "Press start to connect to device"
             _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
         }else{
-            _homeTitle.value = "Bluetooth off"
+            _homeTitle.value = "Bluetooth Off"
             _homeSubtitle.value = "Bluetooth required, please enable Bluetooth"
         }
         Log.i(tag, "bluetoothStateChanged: ${_listOfPairedDevices}, $numListDeviceCalled")
