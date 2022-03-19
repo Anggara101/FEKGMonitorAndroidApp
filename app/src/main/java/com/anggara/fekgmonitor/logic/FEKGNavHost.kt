@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.anggara.fekgmonitor.ui.Screen
 import com.anggara.fekgmonitor.ui.history.HistoryScreen
+import com.anggara.fekgmonitor.ui.history.HistoryViewModel
 import com.anggara.fekgmonitor.ui.home.HomeViewModel
 import com.anggara.fekgmonitor.ui.home.HomeScreen
 
@@ -14,7 +15,8 @@ import com.anggara.fekgmonitor.ui.home.HomeScreen
 @Composable
 fun FEKGNavHost(
     navController: NavHostController,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    historyViewModel: HistoryViewModel
 ) {
     NavHost(
         navController = navController,
@@ -24,7 +26,7 @@ fun FEKGNavHost(
             HomeScreen(navController, homeViewModel)
         }
         composable(Screen.History.name) {
-            HistoryScreen(navController, homeViewModel)
+            HistoryScreen(navController, historyViewModel)
         }
     }
 
