@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val filter1 = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothStateReceiver, filter1)
-        readCSV()
+        readRawCSV()
         saveCSV("data4raw.csv", rawEcgList, application.applicationContext)
         historyViewModel.setRawEcgList(rawEcgList)
         setContent {
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun readCSV(){
+    private fun readRawCSV(){
         val inputStream = resources.openRawResource(R.raw.data4)
         val bufferedReader = inputStream.bufferedReader()
         var line = ""
@@ -70,11 +70,20 @@ class MainActivity : ComponentActivity() {
             while (bufferedReader.readLine() != null){
                 line = bufferedReader.readLine()
                 val token = line.split(",")
-                rawEcgData = RawEcgData(token[0], token[1])
+                rawEcgData = if(token[0]== ""){
+                    RawEcgData("0", token[1])
+                }else if (token[1] == ""){
+                    RawEcgData(token[0], "0")
+                }else if (token[0]== "" && token[1] == ""){
+                    RawEcgData(token[0], "0")
+                }else{
+                    RawEcgData(token[0], token[1])
+                }
+
                 rawEcgList.add(rawEcgData)
 //                Log.i("Main Activity", "read $line")
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Log.e("Main Activity", "error: $line", e)
         }
     }
@@ -82,15 +91,15 @@ class MainActivity : ComponentActivity() {
     fun saveCSV(filename:String, rawEcgList: ArrayList<RawEcgData>, context: Context){
         context.openFileOutput(filename, Context.MODE_PRIVATE).use {outputStream ->
             val bufferedWriter = outputStream.bufferedWriter()
-                rawEcgList.forEach { line ->
-                    try {
-                        bufferedWriter.write("${line.t},${line.ecgRaw}")
-                        bufferedWriter.newLine()
+            rawEcgList.forEach { line ->
+                try {
+                    bufferedWriter.write("${line.t},${line.ecgRaw}")
+                    bufferedWriter.newLine()
 //                        Log.i("Main Activity", "write $line")
-                    } catch (e: IOException) {
-                        Log.e("Main Activity", "error: $line", e)
-                    }
+                } catch (e: IOException) {
+                    Log.e("Main Activity", "error: $line", e)
                 }
+            }
         }
     }
 

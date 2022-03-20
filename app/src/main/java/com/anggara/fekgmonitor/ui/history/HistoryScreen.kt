@@ -1,6 +1,5 @@
 package com.anggara.fekgmonitor.ui.history
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.anggara.fekgmonitor.ui.Screen
 import com.anggara.fekgmonitor.ui.component.HistoryTopBar
 
 @ExperimentalMaterialApi
@@ -27,7 +27,7 @@ fun HistoryScreen(navController: NavController, historyViewModel: HistoryViewMod
                 ListItem(
                     text = { Text(fileName) },
                     modifier = Modifier.clickable {
-                        Log.i("History Screen", "$fileName Clicked")
+                        navController.navigate(Screen.Graph.name)
                     }
                 )
             }

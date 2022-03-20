@@ -16,8 +16,12 @@ class HistoryViewModel(application: Application): AndroidViewModel(Application()
     private val _rawEcgList = mutableStateOf(arrayListOf(RawEcgData("", "")))
     val rawEcgList: State<ArrayList<RawEcgData>> = _rawEcgList
 
+
     init {
         _fileList.value = myFileHandler.getFileList(application.applicationContext)
+//        _rawEcgList.value.forEach { line ->
+//            Log.i("History View Model", line.t)
+//        }
     }
 
     fun setRawEcgList(newRawEcgList: ArrayList<RawEcgData>){
