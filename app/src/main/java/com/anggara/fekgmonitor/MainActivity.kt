@@ -1,6 +1,7 @@
 package com.anggara.fekgmonitor
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,15 +15,18 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.anggara.fekgmonitor.data.RawEcgData
 import com.anggara.fekgmonitor.logic.FEKGNavHost
+import com.anggara.fekgmonitor.logic.MyBluetoothService
 import com.anggara.fekgmonitor.ui.history.HistoryViewModel
 import com.anggara.fekgmonitor.ui.home.HomeViewModel
 import com.anggara.fekgmonitor.ui.theme.FEKGMonitorTheme
 import java.io.IOException
+import java.sql.Connection
 
 
 class MainActivity : ComponentActivity() {
-    private val homeViewModel by viewModels<HomeViewModel>()
+    val homeViewModel by viewModels<HomeViewModel>()
     private val historyViewModel by viewModels<HistoryViewModel>()
+    private val myBluetoothService = MyBluetoothService()
     private val bluetoothStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
             val action: String? = intent.action
@@ -47,19 +51,42 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val connectionStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            val action: String? = intent.action
+            if (action == BluetoothDevice.ACTION_ACL_CONNECTED) {
+                Log.i("Bluetooth Service", "Connected")
+                homeViewModel.onConnectionStateChanged(true)
+            } else if(action == BluetoothDevice.ACTION_ACL_DISCONNECTED){
+                Log.i("Bluetooth Service", "Disconnected")
+                homeViewModel.onConnectionStateChanged(false)
+            }
+        }
+    }
+
     private var rawEcgData = RawEcgData("", "")
     private val rawEcgList: ArrayList<RawEcgData> = arrayListOf(rawEcgData)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val filter1 = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        registerReceiver(bluetoothStateReceiver, filter1)
+        val filterStateChanged = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(bluetoothStateReceiver, filterStateChanged)
+        val filterACLConnected = IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED)
+        val filterACLDisconnected = IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+
+        registerReceiver(connectionStateReceiver, filterACLConnected)
+        registerReceiver(connectionStateReceiver, filterACLDisconnected)
         readRawCSV()
         saveCSV("data4raw.csv", rawEcgList, application.applicationContext)
         historyViewModel.setRawEcgList(rawEcgList)
         setContent {
             FEKGApp(homeViewModel, historyViewModel)
         }
+    }
+
+    fun connectionChanged(){
+        val stateConnection = homeViewModel.stateConnection.value
+        homeViewModel.onConnectionStateChanged(!stateConnection!!)
     }
 
     private fun readRawCSV(){
@@ -105,7 +132,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+//        val selectedDevice = homeViewModel.selectedDevice.value
+//        myBluetoothService.ConnectThread(selectedDevice).cancel()
         unregisterReceiver(bluetoothStateReceiver)
+        unregisterReceiver(connectionStateReceiver)
     }
 }
 
