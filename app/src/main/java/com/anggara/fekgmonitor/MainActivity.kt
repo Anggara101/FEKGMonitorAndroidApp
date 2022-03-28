@@ -26,7 +26,6 @@ import java.sql.Connection
 class MainActivity : ComponentActivity() {
     val homeViewModel by viewModels<HomeViewModel>()
     private val historyViewModel by viewModels<HistoryViewModel>()
-    private val myBluetoothService = MyBluetoothService()
     private val bluetoothStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
             val action: String? = intent.action
@@ -84,6 +83,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     fun connectionChanged(){
         val stateConnection = homeViewModel.stateConnection.value
         homeViewModel.onConnectionStateChanged(!stateConnection!!)
@@ -132,8 +132,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        val selectedDevice = homeViewModel.selectedDevice.value
-//        myBluetoothService.ConnectThread(selectedDevice).cancel()
+        homeViewModel.onDestroy()
         unregisterReceiver(bluetoothStateReceiver)
         unregisterReceiver(connectionStateReceiver)
     }

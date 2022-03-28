@@ -1,7 +1,6 @@
 package com.anggara.fekgmonitor.ui.home
 
 import android.util.Log
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -9,7 +8,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.anggara.fekgmonitor.logic.MyBluetoothService
-import java.io.IOException
 
 class HomeViewModel : ViewModel() {
     private val tag = "View Model"
@@ -22,6 +20,10 @@ class HomeViewModel : ViewModel() {
     private val _stateConnection = MutableLiveData(false)
     val stateConnection: LiveData<Boolean> = _stateConnection
 
+    // Live Ecg Data
+    private val _ecgLiveData = mutableStateOf(arrayListOf<Float>())
+    val ecgLiveData: MutableState<ArrayList<Float>> = _ecgLiveData
+
     // UI VM
     private val _homeTitle = mutableStateOf("Bluetooth Off")
     val homeTitle: MutableState<String> = _homeTitle
@@ -32,7 +34,7 @@ class HomeViewModel : ViewModel() {
     private val _selectedDevice = mutableStateOf("raspberrypi")
     val selectedDevice: MutableState<String> =_selectedDevice
 
-    private val myBluetoothService = MyBluetoothService()
+    private val myBluetoothService = MyBluetoothService(this)
     private val _listOfPairedDevices = mutableStateOf(listOf("raspberrypi, ESP32test"))
     val listOfPairedDevice: State<List<String>> = _listOfPairedDevices
 
@@ -68,7 +70,7 @@ class HomeViewModel : ViewModel() {
 
     fun onConnectionStateChanged(newConnectionState: Boolean){
         _stateConnection.value = newConnectionState
-        if (_stateConnection.value == true){
+        if (_stateConnection.value == true && myBluetoothService.getState()==myBluetoothService.STATE_CONNECTED){
             _homeTitle.value = "Connected"
             _homeSubtitle.value = "Connected with ${_selectedDevice.value}"
         }else{
@@ -84,17 +86,15 @@ class HomeViewModel : ViewModel() {
 
     fun onStartButtonClick(){
         if (_stateBluetooth.value == true){
-            if (_stateConnection.value == false) {
-                _homeSubtitle.value = "Connecting to ${_selectedDevice.value}"
-                try {
-                    myBluetoothService.ConnectThread(_selectedDevice.value).run()
-                } catch (e: IOException) {
-                    Log.e("Home View Model", "Socket might closed or timeout")
-                    _homeSubtitle.value = "${_selectedDevice.value} might closed or timeout"
+            when {
+                myBluetoothService.getState()==myBluetoothService.STATE_NONE -> {
+                    _homeSubtitle.value = "Connecting to ${_selectedDevice.value}"
+                    myBluetoothService.connect(_selectedDevice.value)
                 }
-            }else{
-                _homeSubtitle.value = "Disconnecting from ${_selectedDevice.value}"
-                myBluetoothService.ConnectThread(_selectedDevice.value).cancel()
+                myBluetoothService.getState()==myBluetoothService.STATE_CONNECTED -> {
+//                    _homeSubtitle.value = "Connected with ${_selectedDevice.value}"
+                    myBluetoothService.stop()
+                }
             }
 
         }else{
@@ -103,12 +103,43 @@ class HomeViewModel : ViewModel() {
 //        Log.i("View Model", "buttonClicked: $stateBluetooth")
     }
 
-    fun onDeviceClick(){
-
-    }
-
     fun onSelectedDevice(deviceName: String){
         _selectedDevice.value = deviceName
         _homeSubtitle.value = "Press start to connect to ${_selectedDevice.value}"
+    }
+
+    fun onRead(readBytes: Int, readBuf: ByteArray){
+        val readMessage = String(readBuf, 0, readBytes)
+        var outMessage = ""
+        var ecgRaw = 0F
+
+        if (readMessage.contains("\n")){
+            val token = readMessage.split("\r\n")
+            token.forEach {
+                outMessage = it
+                if (outMessage.isNotEmpty()){
+                    try {
+                        ecgRaw = outMessage.toFloat()
+                        _ecgLiveData.value.add(ecgRaw)
+                        Log.i("View Model", ecgRaw.toString())
+                    } catch (e: Exception){
+                        Log.e("View Model", "Parsing error $outMessage", e)
+                    }
+                }
+            }
+        } else{
+            outMessage = readMessage
+            try {
+                ecgRaw = outMessage.toFloat()
+                _ecgLiveData.value.add(ecgRaw)
+                Log.i("View Model", ecgRaw.toString())
+            } catch (e: Exception){
+                Log.e("View Model", "Parsing error $outMessage", e)
+            }
+        }
+    }
+
+    fun onDestroy(){
+        myBluetoothService.stop()
     }
 }
