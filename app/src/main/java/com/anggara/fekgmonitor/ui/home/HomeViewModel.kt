@@ -20,6 +20,10 @@ class HomeViewModel : ViewModel() {
     private val _stateConnection = MutableLiveData(false)
     val stateConnection: LiveData<Boolean> = _stateConnection
 
+    // Graph Visibility
+    private val _graphVisibility = MutableLiveData(false)
+    val graphVisibility: LiveData<Boolean> = _graphVisibility
+
     // Live Ecg Data
     private val _ecgLiveData = mutableStateOf(arrayListOf<Float>())
     val ecgLiveData: MutableState<ArrayList<Float>> = _ecgLiveData
@@ -110,8 +114,8 @@ class HomeViewModel : ViewModel() {
 
     fun onRead(readBytes: Int, readBuf: ByteArray){
         val readMessage = String(readBuf, 0, readBytes)
-        var outMessage = ""
-        var ecgRaw = 0F
+        var outMessage: String
+        var ecgRaw: Float
 
         if (readMessage.contains("\n")){
             val token = readMessage.split("\r\n")

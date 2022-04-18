@@ -1,7 +1,6 @@
 package com.anggara.fekgmonitor.logic
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.util.Log
 import com.anggara.fekgmonitor.ui.home.HomeViewModel
@@ -121,7 +120,7 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
      * *
      * @param device The BluetoothDevice that has been connected
      */
-    @Synchronized fun connected(socket: BluetoothSocket?, device: BluetoothDevice?) {
+    @Synchronized fun connected(socket: BluetoothSocket?) {
         Log.d(TAG, "connected")
 
         // Cancel the thread that completed the connection
@@ -168,7 +167,7 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
      */
     fun write(out: ByteArray) {
         // Create temporary object
-        var r: ConnectedThread?  = null
+        var r: ConnectedThread?
         // Synchronize a copy of the ConnectedThread
         synchronized(this) {
             if (mState != STATE_CONNECTED) return
@@ -252,7 +251,7 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
             }
 
             // Start the connected thread
-            connected(mmSocket, mmDevice)
+            connected(mmSocket)
         }
 
         // Closes the client socket and causes the thread to finish.
@@ -329,9 +328,6 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
         fun write(buffer: ByteArray) {
             try {
                 mmOutStream?.write(buffer)
-//                // Share the sent message back to the UI Activity
-//                mHandler?.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
-//                    ?.sendToTarget()
             } catch (e: IOException) {
                 Log.e(TAG, "Exception during write", e)
             }

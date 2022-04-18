@@ -21,6 +21,7 @@ fun MPLineChart(rawEcg: ArrayList<RawEcgData>) {
             LineChart(context)
         },
         update = { lineChart ->
+            lineChart.description.isEnabled = false
             val entries = arrayListOf<Entry>()
             rawEcg.forEachIndexed { index, d ->
                 entries.add(Entry(index.toFloat(), d.ecgRaw.toFloat()))
@@ -34,10 +35,50 @@ fun MPLineChart(rawEcg: ArrayList<RawEcgData>) {
             lineChart.data = lineData
             lineChart.invalidate()
         },
-        modifier = Modifier.fillMaxWidth()
-            .aspectRatio(1.5f)
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.5f, matchHeightConstraintsFirst = true)
     )
 }
+
+//@Composable
+//fun LineChartLive() {
+//    var thread: Thread? = null
+//    var plotData = true
+//    AndroidView(
+//        factory = {context ->
+//            LineChart(context)
+//        },
+//        update = { lineChart ->
+//            lineChart.description.isEnabled = false
+//            val data = LineData()
+//            lineChart.data = data
+//            val x1 = lineChart.xAxis
+//            x1.setAvoidFirstLastClipping(true)
+//            x1.isEnabled = true
+//
+//            val leftAxis = lineChart.axisLeft
+//            leftAxis.setDrawGridLines(false)
+//            leftAxis.axisMaximum = 10f
+//            leftAxis.axisMinimum = 0f
+//            leftAxis.setDrawGridLines(true)
+//
+//            val rightAxis = lineChart.axisRight
+//            rightAxis.isEnabled = false
+//
+//            lineChart.axisLeft.setDrawGridLines(false)
+//            lineChart.axisRight.setDrawGridLines(false)
+//            lineChart.setDrawBorders(false)
+//
+//            feedMultiple(thread, plotData)
+//        }
+//
+//    )
+//}
+//
+//
+//
+
 
 
 @Preview(showBackground = true)

@@ -10,6 +10,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -21,6 +22,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.anggara.fekgmonitor.ui.component.GraphCard
 import com.anggara.fekgmonitor.ui.component.HomeTopBar
+import com.anggara.fekgmonitor.ui.component.MPLineChart
 import com.anggara.fekgmonitor.ui.component.TitleCard
 
 @Composable
@@ -29,7 +31,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
     val title = homeViewModel.homeTitle.value
     val subtitle = homeViewModel.homeSubtitle.value
 
-    var graphCardVisibility by rememberSaveable {mutableStateOf(false)}
+    val graphCardVisibility by homeViewModel.graphVisibility.observeAsState()
 
     Scaffold(topBar = { HomeTopBar(navController, homeViewModel) }) { innerPadding ->
         Column(
@@ -38,9 +40,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
         ) {
             TitleCard(title = title, subtitle = subtitle)
             AnimatedVisibility(
-                visible = graphCardVisibility
+                visible = graphCardVisibility == true
             ) {
-                GraphCard()
+                Column() {
+                    GraphCard()
+                }
             }
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -50,7 +54,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 Button(
                     onClick = {
                         homeViewModel.onStartButtonClick()
-                        graphCardVisibility = !graphCardVisibility
+//                        graphCardVisibility = !graphCardVisibility
                     }
                 ) {
                     Text(text = "Start")
