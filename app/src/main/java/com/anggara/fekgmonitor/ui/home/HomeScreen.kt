@@ -1,6 +1,6 @@
 package com.anggara.fekgmonitor.ui.home
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,9 +11,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.anggara.fekgmonitor.ui.component.GraphCard
 import com.anggara.fekgmonitor.ui.component.HomeTopBar
-import com.anggara.fekgmonitor.ui.component.MPLineChart
 import com.anggara.fekgmonitor.ui.component.TitleCard
 
 @Composable
@@ -30,6 +26,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
 //    val bluetoothState by homeViewModel.stateBluetooth.observeAsState()
     val title = homeViewModel.homeTitle.value
     val subtitle = homeViewModel.homeSubtitle.value
+
+    val mode = homeViewModel.stateMode.value
+    val ecgRaw = homeViewModel.ecgLiveData.value
+    val fHR = homeViewModel.fHR.value
+    val mHR = homeViewModel.mHR.value
 
     val graphCardVisibility by homeViewModel.graphVisibility.observeAsState()
 
@@ -42,9 +43,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
             AnimatedVisibility(
                 visible = graphCardVisibility == true
             ) {
-                Column() {
-                    GraphCard()
-                }
+                GraphCard(mode, ecgRaw, fHR, mHR)
             }
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -54,10 +53,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
                 Button(
                     onClick = {
                         homeViewModel.onStartButtonClick()
-//                        graphCardVisibility = !graphCardVisibility
                     }
                 ) {
-                    Text(text = "Start")
+                    if (graphCardVisibility == false){
+                        Text(
+                            text = "Start")
+                    }else{
+                        Text(
+                            text = "Stop")
+                    }
                 }
             }
         }

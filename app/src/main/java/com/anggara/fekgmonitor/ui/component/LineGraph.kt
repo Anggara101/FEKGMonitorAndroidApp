@@ -3,9 +3,11 @@ package com.anggara.fekgmonitor.ui.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.anggara.fekgmonitor.data.RawEcgData
 import com.github.mikephil.charting.charts.LineChart
@@ -38,47 +40,88 @@ fun MPLineChart(rawEcg: ArrayList<RawEcgData>) {
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1.5f, matchHeightConstraintsFirst = true)
+            .padding(8.dp)
     )
 }
 
-//@Composable
-//fun LineChartLive() {
-//    var thread: Thread? = null
-//    var plotData = true
-//    AndroidView(
-//        factory = {context ->
-//            LineChart(context)
-//        },
-//        update = { lineChart ->
-//            lineChart.description.isEnabled = false
-//            val data = LineData()
-//            lineChart.data = data
-//            val x1 = lineChart.xAxis
-//            x1.setAvoidFirstLastClipping(true)
-//            x1.isEnabled = true
-//
-//            val leftAxis = lineChart.axisLeft
-//            leftAxis.setDrawGridLines(false)
-//            leftAxis.axisMaximum = 10f
-//            leftAxis.axisMinimum = 0f
-//            leftAxis.setDrawGridLines(true)
-//
-//            val rightAxis = lineChart.axisRight
-//            rightAxis.isEnabled = false
-//
-//            lineChart.axisLeft.setDrawGridLines(false)
-//            lineChart.axisRight.setDrawGridLines(false)
-//            lineChart.setDrawBorders(false)
-//
-//            feedMultiple(thread, plotData)
-//        }
-//
-//    )
-//}
-//
-//
-//
+@Composable
+fun LineChartLive(mode: Int, value:Float){
+    AndroidView(
+        factory = {context ->
+            LineChart(context).apply {
+                this.description.isEnabled = false
+                val data = LineData()
+                this.data = data
 
+                val x1 = this.xAxis
+                x1.setAvoidFirstLastClipping(true)
+                x1.isEnabled = true
+
+                val rightAxis = this.axisRight
+                rightAxis.isEnabled = false
+
+                this.axisLeft.setDrawGridLines(false)
+                this.axisRight.setDrawGridLines(false)
+                this.setDrawBorders(false)
+
+            }
+        },
+        update = {mChart ->
+            val data: LineData = mChart.data
+            if (mode == 1){
+                var set = data.getDataSetByIndex(0)
+                if (set == null){
+                    set = LineDataSet(null, "ECGRaw")
+                    set.setDrawValues(false)
+                    set.setDrawCircles(false)
+                    set.lineWidth = 2f
+                    data.addDataSet(set)
+                }
+
+                data.addEntry(Entry(set.entryCount.toFloat(), value), 0)
+
+                data.notifyDataChanged()
+                mChart.notifyDataSetChanged()
+
+                // limit the number of visible entries
+                mChart.setVisibleXRangeMaximum(150F)
+
+                // move to the latest entry
+                mChart.moveViewToX(data.entryCount.toFloat())
+            }else if (mode == 2){
+                var set = data.getDataSetByIndex(0)
+                if(set == null){
+                    set = LineDataSet(null, "FHR")
+                    set.setDrawValues(false)
+                    set.setDrawCircles(false)
+                    set.lineWidth = 2f
+                    data.addDataSet(set)
+                }
+//                var set2 = data.getDataSetByIndex(1)
+//                if (set2 == null){
+//                    set2 = LineDataSet(null, "MHR")
+//                    set2.setDrawValues(false)
+//                    set2.setDrawCircles(false)
+//                    set2.lineWidth = 2f
+//                    data.addDataSet(set2)
+//                }
+
+                data.addEntry(Entry(set.entryCount.toFloat(), value), 0)
+//                data.addEntry(Entry(set2.entryCount.toFloat(), value/1.8f), 1)
+
+                data.notifyDataChanged()
+                mChart.notifyDataSetChanged()
+                // limit the number of visible entries
+                mChart.setVisibleXRangeMaximum(150F)
+                // move to the latest entry
+                mChart.moveViewToX(data.entryCount.toFloat())
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.5f, matchHeightConstraintsFirst = true)
+    )
+}
 
 
 @Preview(showBackground = true)

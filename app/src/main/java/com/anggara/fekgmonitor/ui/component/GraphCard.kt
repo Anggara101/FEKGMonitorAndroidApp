@@ -11,40 +11,49 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun GraphCard() {
+fun GraphCard(mode:Int, ecgRaw:Float, fHR:Float, mHR:Float) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
         elevation = 2.dp,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = "MHR",
-                    style = MaterialTheme.typography.body1,
-                )
-                Text(
-                    text = "86 bpm",
-                    style = MaterialTheme.typography.h5,
-                    )
+        if (mode == 1){
+            Column {
+                Text(text = "Training", style = MaterialTheme.typography.h5)
+                LineChartLive(mode, value = ecgRaw)
             }
-            Column(
-                modifier = Modifier.padding(8.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "FHR",
-                    style = MaterialTheme.typography.body1,
-                )
-                Text(
-                    text = "124 bpm",
-                    style = MaterialTheme.typography.h5,
-
-                    )
+        }else if (mode == 2){
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text(
+                            text = "MHR",
+                            style = MaterialTheme.typography.body1,
+                        )
+                        Text(
+                            text = "$mHR bpm",
+                            style = MaterialTheme.typography.h5,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "FHR",
+                            style = MaterialTheme.typography.body1,
+                        )
+                        Text(
+                            text = "$fHR bpm",
+                            style = MaterialTheme.typography.h5,
+                        )
+                    }
+                }
+                LineChartLive(mode, value = fHR)
             }
         }
     }
@@ -53,5 +62,5 @@ fun GraphCard() {
 @Preview
 @Composable
 fun GraphCardPreview() {
-    GraphCard()
+    GraphCard(1,15f,120f, 80f)
 }

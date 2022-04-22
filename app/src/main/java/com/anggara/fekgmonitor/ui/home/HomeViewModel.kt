@@ -25,14 +25,22 @@ class HomeViewModel : ViewModel() {
     val graphVisibility: LiveData<Boolean> = _graphVisibility
 
     // Live Ecg Data
-    private val _ecgLiveData = mutableStateOf(arrayListOf<Float>())
-    val ecgLiveData: MutableState<ArrayList<Float>> = _ecgLiveData
+    private val _ecgLiveData = mutableStateOf(0f)
+    val ecgLiveData: MutableState<Float> = _ecgLiveData
+
+    // State Mode
+    private val _stateMode = mutableStateOf(0)
+    val stateMode: MutableState<Int> = _stateMode
 
     // UI VM
     private val _homeTitle = mutableStateOf("Bluetooth Off")
     val homeTitle: MutableState<String> = _homeTitle
     private val _homeSubtitle = mutableStateOf("Bluetooth required, please enable Bluetooth")
     val homeSubtitle: MutableState<String> = _homeSubtitle
+    private val _fHR = mutableStateOf(120f)
+    val fHR: MutableState<Float> = _fHR
+    private val _mHR = mutableStateOf(80f)
+    val mHR: MutableState<Float> = _mHR
 
     // Bluetooth VM
     private val _selectedDevice = mutableStateOf("raspberrypi")
@@ -74,12 +82,15 @@ class HomeViewModel : ViewModel() {
 
     fun onConnectionStateChanged(newConnectionState: Boolean){
         _stateConnection.value = newConnectionState
-        if (_stateConnection.value == true && myBluetoothService.getState()==myBluetoothService.STATE_CONNECTED){
+        if (_stateConnection.value == true){
             _homeTitle.value = "Connected"
             _homeSubtitle.value = "Connected with ${_selectedDevice.value}"
+            _graphVisibility.value = true
         }else{
             _homeTitle.value = "Disconnected"
             _homeSubtitle.value = "Disconnected with ${_selectedDevice.value}"
+            _graphVisibility.value = false
+            _stateMode.value = 0
         }
     }
 
@@ -114,31 +125,41 @@ class HomeViewModel : ViewModel() {
 
     fun onRead(readBytes: Int, readBuf: ByteArray){
         val readMessage = String(readBuf, 0, readBytes)
-        var outMessage: String
-        var ecgRaw: Float
 
-        if (readMessage.contains("\n")){
-            val token = readMessage.split("\r\n")
-            token.forEach {
-                outMessage = it
-                if (outMessage.isNotEmpty()){
-                    try {
-                        ecgRaw = outMessage.toFloat()
-                        _ecgLiveData.value.add(ecgRaw)
-                        Log.i("View Model", ecgRaw.toString())
-                    } catch (e: Exception){
-                        Log.e("View Model", "Parsing error $outMessage", e)
-                    }
-                }
-            }
+        val outMessage: String = if (readMessage.contains("\n")){
+            val token = readMessage.split("\n")
+            token[0]
         } else{
-            outMessage = readMessage
-            try {
-                ecgRaw = outMessage.toFloat()
-                _ecgLiveData.value.add(ecgRaw)
-                Log.i("View Model", ecgRaw.toString())
-            } catch (e: Exception){
-                Log.e("View Model", "Parsing error $outMessage", e)
+            readMessage
+        }
+        val token = outMessage.split(",")
+        when (token[0].toInt()) {
+            1 -> {
+                _stateMode.value = 1
+                try {
+//                    Log.i("View Model", token[1])
+                    _ecgLiveData.value = token[1].toFloat()
+                }catch (e:Exception){
+                    Log.e("View Model", "Parsing error $outMessage", e)
+                }
+
+            }
+            2 -> {
+                _stateMode.value = 2
+                try {
+                    _fHR.value = token[1].toFloat()
+                }catch (e: Exception){
+                    Log.e("View Model", "Parsing error $outMessage", e)
+                }
+
+            }
+            3 -> {
+                _stateMode.value = 2
+                try {
+                    _mHR.value = token[1].toFloat()
+                }catch (e: Exception){
+                    Log.e("View Model", "Parsing error $outMessage", e)
+                }
             }
         }
     }
