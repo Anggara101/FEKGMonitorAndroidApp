@@ -118,7 +118,6 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
      * Start the ConnectedThread to begin managing a Bluetooth connection
      * @param socket The BluetoothSocket on which the connection was made
      * *
-     * @param device The BluetoothDevice that has been connected
      */
     @Synchronized fun connected(socket: BluetoothSocket?) {
         Log.d(TAG, "connected")
@@ -184,7 +183,7 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
 
         mState = STATE_NONE
         Log.d(TAG, "connection failed")
-
+        mHomeViewModel.homeSubtitle.value = "Connection failed"
         // Start the service over to restart listening mode
         this@MyBluetoothService.start()
     }
@@ -195,14 +194,13 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
     private fun connectionLost() {
 
         mState = STATE_NONE
+        mHomeViewModel.homeSubtitle.value = "Connection Lost"
         // Update UI title
         // updateUserInterfaceTitle()
 
         // Start the service over to restart listening mode
         this@MyBluetoothService.start()
     }
-
-
 
     inner class ConnectThread(deviceName: String) : Thread() {
         private val deviceAddress = getDeviceAddress(deviceName)
