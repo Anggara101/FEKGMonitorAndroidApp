@@ -23,7 +23,7 @@ import com.anggara.fekgmonitor.ui.component.TitleCard
 
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
-//    val bluetoothState by homeViewModel.stateBluetooth.observeAsState()
+
     val title = homeViewModel.homeTitle.value
     val subtitle = homeViewModel.homeSubtitle.value
 
@@ -67,6 +67,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = view
         }
     }
 }
+
 
 
 @Preview

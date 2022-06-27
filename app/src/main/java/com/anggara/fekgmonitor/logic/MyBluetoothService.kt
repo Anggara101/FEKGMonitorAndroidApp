@@ -12,7 +12,7 @@ import java.util.*
 
 class MyBluetoothService(homeViewModel: HomeViewModel) {
     // Debugging
-    private val TAG = "BluetoothChatService"
+    private val TAG = "BluetoothService"
 
     val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val listOfDeviceName: ArrayList<String> = ArrayList()
@@ -48,7 +48,6 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
 
     // Constants that indicate the current connection state
     val STATE_NONE = 0 // we're doing nothing
-    val STATE_LISTEN = 1 // now listening for incoming connections
     val STATE_CONNECTING = 2 // now initiating an outgoing connection
     val STATE_CONNECTED = 3 // now connected to a remote mmDevice
 
@@ -66,8 +65,7 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
     }
 
     /**
-     * Start the chat service. Specifically start AcceptThread to begin a
-     * session in listening (server) mode. Called by the Activity onResume()
+     * Start the chat service.
      */
     @Synchronized
     fun start() {
@@ -156,24 +154,6 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
         }
 
         mState = STATE_NONE
-    }
-
-    /**
-     * Write to the ConnectedThread in an unsynchronized manner
-     * @param out The bytes to write
-     * *
-     * @see ConnectedThread.write
-     */
-    fun write(out: ByteArray) {
-        // Create temporary object
-        var r: ConnectedThread?
-        // Synchronize a copy of the ConnectedThread
-        synchronized(this) {
-            if (mState != STATE_CONNECTED) return
-            r = mConnectedThread
-        }
-        // Perform the write unsynchronized
-        r?.write(out)
     }
 
     /**
@@ -296,12 +276,9 @@ class MyBluetoothService(homeViewModel: HomeViewModel) {
             val buffer = ByteArray(1024)
             var bytes: Int
 
-            try {
-                val message = "2\n"
-                mmOutStream?.write(message.toByteArray())
-            } catch (e: IOException){
-                Log.e(TAG, "Exception during write", e)
-            }
+            val message = "2\n"
+
+            write(message.toByteArray())
 
             // Keep listening to the InputStream while connected
             while (mState == STATE_CONNECTED) {
